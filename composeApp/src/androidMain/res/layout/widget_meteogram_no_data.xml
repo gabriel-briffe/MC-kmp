@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2E2E2E"
+    android:padding="4dp">
+
+    <!-- Default text when no weather data -->
+    <TextView
+        android:id="@+id/widget_no_data_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="select a location for meteogram on the widget sheet in the app"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        android:gravity="center"
+        android:background="#1A1A1A"
+        android:padding="16dp" />
+
+    <!-- Refresh button in bottom right -->
+    <Button
+        android:id="@+id/widget_refresh_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:text="Refresh"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:background="#80000000"
+        android:padding="6dp"
+        android:minWidth="20dp"
+        android:minHeight="20dp" />
+
+</FrameLayout>

@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:viewportWidth="250"
+    android:viewportHeight="250"
+    android:width="250dp"
+    android:height="250dp">
+    <path android:pathData="M125 112V38M125 38h14l-14 14V38zM125 52h14l-14 14V52zM125 66h14l-14 14V66zM125 90l14 -14M125 100l14 -14M125 125l7 -12.1h-14L125 125z" android:strokeColor="#FFFFFF" android:strokeWidth="10" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeMiterLimit="10" />
+
+    <path
+        android:pathData="M125 112V38M125 38h14l-14 14V38zM125 52h14l-14 14V52zM125 66h14l-14 14V66zM125 90l14 -14M125 100l14 -14M125 125l7 -12.1h-14L125 125z"
+        android:fillColor="#EC00FF"
+        android:strokeColor="#EC00FF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeMiterLimit="10" />
+</vector>
