@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Widget provider info for the Glance-based Meteogram Widget.
+    Resizable widget with scrollable content.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="150dp"
+    android:minResizeWidth="200dp"
+    android:minResizeHeight="100dp"
+    android:maxResizeWidth="600dp"
+    android:maxResizeHeight="600dp"
+    android:updatePeriodMillis="43200000"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

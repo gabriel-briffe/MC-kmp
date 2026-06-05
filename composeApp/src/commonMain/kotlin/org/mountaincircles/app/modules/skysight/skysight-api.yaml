@@ -1,0 +1,651 @@
+swagger: '2.0'
+info:
+  description: All times are in UTC
+  version: 0.0.11
+  title: API
+host: skysight.io
+basePath: /api
+schemes:
+  - https
+security:
+  - apiKey: []
+paths:
+  /info:
+    get:
+      tags:
+        - Server info
+      description: Get server info
+      operationId: getServerInfo
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Server info
+          schema:
+            type: object
+            example:
+              server_time: 1498735312
+              last_updated: 1498730000
+            properties:
+              server_time:
+                type: integer
+                description: Current unix time on server.
+              last_updated:
+                type: integer
+                description: Time of last data change (unix time)
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+  /satellite/{z}/{x}/{y}/{year}/{month}/{day}/{time}:
+    get:
+      tags:
+        - Satellite Imagery
+      summary: Get satellite imagery tile
+      description: Retrieve a satellite imagery tile for a specific location and time
+      operationId: getSatelliteTile
+      produces:
+        - image/jpeg
+      parameters:
+        - name: z
+          in: path
+          type: string
+          required: true
+          description: Zoom level
+        - name: x
+          in: path
+          type: string
+          required: true
+          description: X coordinate
+        - name: y
+          in: path
+          type: string
+          required: true
+          description: Y coordinate
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: Year (YYYY)
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: Month (MM)
+        - name: day
+          in: path
+          type: string
+          required: true
+          description: Day (DD)
+        - name: time
+          in: path
+          type: string
+          required: true
+          description: Time in 24-hour format (HHMM)
+      responses:
+        '200':
+          description: Satellite imagery tile
+          schema:
+            type: file
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/Error'
+  /rain/{z}/{x}/{y}/{year}/{month}/{day}/{time}:
+    get:
+      tags:
+        - Rain Forecast
+      summary: Get rain forecast tile
+      description: Retrieve a rain forecast tile for a specific location and time
+      operationId: getRainTile
+      produces:
+        - image/png
+      parameters:
+        - name: z
+          in: path
+          type: string
+          required: true
+          description: Zoom level
+        - name: x
+          in: path
+          type: string
+          required: true
+          description: X coordinate
+        - name: y
+          in: path
+          type: string
+          required: true
+          description: Y coordinate
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: Year (YYYY)
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: Month (MM)
+        - name: day
+          in: path
+          type: string
+          required: true
+          description: Day (DD)
+        - name: time
+          in: path
+          type: string
+          required: true
+          description: Time in 24-hour format (HHMM)
+      responses:
+        '200':
+          description: Rain forecast tile
+          schema:
+            type: file
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/Error'
+  /regions:
+    get:
+      tags:
+        - Layer info
+      summary: Get info about all available regions
+      operationId: getRegions
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: List of all available regions
+          schema:
+            title: RegionList
+            type: array
+            items:
+              $ref: '#/definitions/Region'
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+  /layers:
+    get:
+      tags:
+        - Layer info
+      summary: Get info about all available layers
+      operationId: getLayers
+      produces:
+        - application/json
+      parameters:
+        - name: region_id
+          in: query
+          type: string
+          required: true
+          description: unique region ID
+      responses:
+        '200':
+          description: List of all available layers
+          schema:
+            title: LayerList
+            type: array
+            items:
+              $ref: '#/definitions/LayerInfo'
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+  /data:
+    get:
+      tags:
+        - Data
+      summary: Get data
+      operationId: getData
+      produces:
+        - application/json
+      parameters:
+        - name: region_id
+          in: query
+          type: string
+          required: true
+          description: unique region ID
+        - name: from_time
+          in: query
+          type: string
+          required: true
+          description: return data produced after this time (unix time) - max 24h
+        - name: layer_ids
+          in: query
+          type: array
+          description: 'list of layer IDs (optional, if omitted assume all layers)'
+          items:
+            type: string
+      responses:
+        '200':
+          description: >-
+            List of available files for the specified region that contain
+            specified layers (empty array, if none are available)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DownloadInfo'
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+  /data/last_updated:
+    get:
+      tags:
+        - Data
+      summary: Get data info
+      operationId: getDataInfo
+      produces:
+        - application/json
+      parameters:
+        - name: region_id
+          in: query
+          type: string
+          required: true
+          description: unique region ID
+        - name: layer_ids
+          in: query
+          type: array
+          description: 'list of layer IDs (optional, if omitted assume all layers)'
+          items:
+            type: string
+      responses:
+        '200':
+          description: Returns a list of layers for specified region with their timestamps
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LastUpdateInfo'
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+  /auth:
+    post:
+      tags:
+        - Authenticate User
+      summary: Authenticate with remote service
+      operationId: postAuth
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: auth
+          in: body
+          description: Login info
+          required: true
+          schema:
+            $ref: '#/definitions/ServiceAuthRequest'
+      responses:
+        '200':
+          $ref: '#/responses/AuthenticationSuccess'
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '402':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/AuthenticationError'
+  /download_task:
+    post:
+      tags:
+        - Download task
+      summary: Download a published task file
+      operationId: downloadTask
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: body
+          description: Email address of user for whom to download the published task
+          required: true
+          schema:
+            $ref: '#/definitions/DownloadTaskRequest'
+      responses:
+        '200':
+          description: .cup task file
+          schema:
+            type: file
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+        '403':
+          $ref: '#/responses/UserNotFoundError'
+        '404':
+          $ref: '#/responses/TaskNotFoundError'
+    head:
+      tags:
+        - Download task
+      summary: Get last update time for published task file
+      operationId: getTaskLastUpdate
+      consumes:
+        - application/json
+      parameters:
+        - name: email
+          in: query
+          type: string
+          description: Email address of user for whom to download the published task
+          required: true
+      responses:
+        '200':
+          description: last-update header includes last update time
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/responses/UnauthorizedAPIError'
+        '403':
+          $ref: '#/responses/UserNotFoundError'
+        '404':
+          $ref: '#/responses/TaskNotFoundError'
+securityDefinitions:
+  apiKey:
+    type: apiKey
+    name: X-API-Key
+    in: header
+responses:
+  UnauthorizedAPIError:
+    description: API key is missing or invalid
+    headers:
+      WWW-Authenticate:
+        type: string
+  AuthenticationSuccess:
+    description: Authentication success
+    schema:
+      $ref: '#/definitions/UserAuthInfo'
+  AuthenticationError:
+    description: Authentication error wrapper
+    schema:
+      $ref: '#/definitions/Error'
+  UserNotFoundError:
+    description: Username/email not recognized
+    schema:
+      $ref: '#/definitions/Error'
+  TaskNotFoundError:
+    description: No task published / available for download
+    schema:
+      $ref: '#/definitions/Error'
+  RouteNotFound:
+    description: Route not found, either impossible, outside available times
+    schema:
+      $ref: '#/definitions/Error'
+definitions:
+  Error:
+    type: object
+    required:
+      - error
+      - message
+    properties:
+      error:
+        type: integer
+        description: Error code
+      message:
+        type: string
+        description: Error message
+  Bounds:
+    title: Bounds
+    description: Layer bounding box (left top and bottom right lat lon)
+    type: array
+    minItems: 4
+    maxItems: 4
+    example:
+      - 56.133848 /* lt lat */
+      - '-5.710368 /* lt lon */'
+      - 43.484848 /* br lat */
+      - 26.693457 /* br lon */
+    items:
+      type: number
+      format: float
+  Region:
+    title: Region
+    description: Region description
+    type: object
+    required:
+      - id
+      - name
+      - bounds
+      - update
+    properties:
+      id:
+        description: unique region ID
+        type: string
+        example: EUROPE
+      name:
+        description: Nice region name - may be displayed to the user
+        type: string
+        example: Europe
+      bounds:
+        $ref: '#/definitions/Bounds'
+      update:
+        type: string
+        enum:
+          - interval
+          - specific time
+      update_interval:
+        description: 'Data update interval [s] (if interval was selected)'
+        type: integer
+        example: 300
+      update_times:
+        description: >-
+          Specific update time offsets (from 00:00 UTC) [s] (if specific time
+          was selected)
+        type: array
+        example:
+          - 28800
+          - 64800
+        items:
+          description: 'Time offset from 00:00 in seconds'
+          type: integer
+  LegendItem:
+    title: LegendItem
+    description: layer coloring info item
+    type: object
+    required:
+      - name
+      - value
+      - color
+    properties:
+      name:
+        type: string
+        description: nice name displayed to the user
+        example: '-3.2m/s'
+      value:
+        type: number
+        description: value in the same format as layer data
+        example: '-3.2'
+      color:
+        type: array
+        description: color in RGB888 format
+        minItems: 3
+        maxItems: 3
+        example:
+          - 255
+          - 0
+          - 0
+        items:
+          type: number
+          format: byte
+  Legend:
+    title: Legend
+    description: layer coloring info
+    type: object
+    required:
+      - color_mode
+      - units
+      - colors
+    properties:
+      color_mode:
+        description: >-
+          How to apply color. Fixed - same color until next value-color pair.
+          Linear - linear interpolation between adjacent value-color pairs.
+        type: string
+        enum:
+          - fixed
+          - linear
+      units:
+        description: >-
+          SI units; 'none' may be used for forcing the use of name parameter in
+          LegendItem
+        type: string
+        example: m/s
+      units_scale_factor:
+        description: >-
+          Scale factor (multiplier) between the data value and displayed value
+          (example: for a value saved in meters but displayed as km factor would
+          be 0.001
+        type: number
+        format: float
+        default: 1
+        example: 1
+      colors:
+        type: array
+        minItems: 2
+        example:
+          - name: '-3.2m/s'
+            value: '-3.2'
+            color:
+              - 0
+              - 0
+              - 255
+          - name: 12m/s
+            value: '12.0'
+            color:
+              - 255
+              - 0
+              - 0
+        items:
+          $ref: '#/definitions/LegendItem'
+  LayerInfo:
+    title: LayerInfo
+    description: layer info
+    type: object
+    required:
+      - id
+      - name
+      - description
+      - data_type
+      - projection
+      - legend
+    properties:
+      id:
+        type: string
+        description: unique layer ID (variable name in netCDF)
+        example: press500
+      name:
+        type: string
+        description: nice layer name - can be presented to the user
+        example: Vertical Velocity at 500mbar
+      description:
+        type: string
+        description: layer description
+        example: >-
+          Vertical velocity at a constant pressure level of 500mb, plus wind
+          speed/direction barbs.
+      data_type:
+        description: Data type
+        type: string
+        enum:
+          - netcdf
+          - image/png
+          - image/jpg
+      projection:
+        description: >-
+          Projection info. EPSG:3857 (WGS 84-Pseudo-Mercator / Web Mercator),
+          EPSG:4326  (WGS 84 / Unprojected)
+        type: string
+        enum:
+          - 'EPSG:4326'
+          - 'EPSG:3857'
+      legend:
+        $ref: '#/definitions/Legend'
+  DownloadInfo:
+    description: Data download info
+    type: object
+    example:
+      time: 1498735312
+      link: 'http://data.server.tld/region/1246/1830.nc'
+    properties:
+      time:
+        description: Data timestamp (Unix timestamp)
+        type: integer
+      link:
+        type: string
+      layer_id:
+        type: string
+  LastUpdateInfo:
+    description: Last update info
+    type: object
+    example:
+      time: 1498735312
+      layer_id: press500
+    properties:
+      layer_id:
+        type: string
+      time:
+        description: Data timestamp (Unix timestamp)
+        type: integer
+  DownloadTaskRequest:
+    type: object
+    required:
+      - email
+    properties:
+      email:
+        description: Username / email
+        type: string
+        example: user@someemail.com
+  ServiceAuthRequest:
+    type: object
+    required:
+      - username
+      - password
+      - device_type
+      - device_serial
+    properties:
+      username:
+        description: Username / email
+        type: string
+        example: user@someemail.com
+      password:
+        description: password
+        type: string
+        example: PaSsWoRd
+      device_type:
+        type: string
+        example: LX9000
+      device_serial:
+        type: integer
+        example: '9000'
+  UserAuthInfo:
+    type: object
+    required:
+      - valid_until
+    properties:
+      key:
+        description: 'Temporary API key for this user, to be used for other API calls'
+        type: string
+        example: '7R3jLBECZnSDEmdr'
+      valid_until:
+        description: Authentication is valid until... (unix time)
+        type: integer
+        example: 1498735312
+      allowed_regions:
+        description: 'Array of allowed regions (may be empty, if all are allowed)'
+        type: array
+        items:
+          type: object
+          properties:
+            region_id:
+              type: string
+              example: europe
+            layer_ids:
+              description: >-
+                Array of allowed layer ids in specified region (may be empty, if
+                all are allowed)
+              type: array
+              example:
+                - press500
+                - press800
+                - U
+                - V
+                - W
+              items:
+                type: string
+

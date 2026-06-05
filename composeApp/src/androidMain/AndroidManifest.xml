@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <application
+        android:name=".MountainCirclesApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="MountainCircles"
+        android:theme="@style/AppTheme"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:replace="android:allowBackup,android:label">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:keepScreenOn="true"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Glance-based Meteogram Widget (new implementation) -->
+        <receiver android:name=".widget.glance.MeteogramGlanceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_meteogram_glance_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/meteogram_glance_widget_info" />
+        </receiver>
+
+        <!-- Glance-based Wave Today Widget (new implementation) -->
+        <receiver android:name=".widget.glance.WaveTodayGlanceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_wave_today_glance_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/wave_today_glance_widget_info" />
+        </receiver>
+
+        <!-- Glance-based Wave Tomorrow Widget (new implementation) -->
+        <receiver android:name=".widget.glance.WaveTomorrowGlanceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_wave_tomorrow_glance_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/wave_tomorrow_glance_widget_info" />
+        </receiver>
+    </application>
+</manifest>
