@@ -77,7 +77,19 @@ private fun OfflineRegionDownloadController(
     LaunchedEffect(bounds) {
         OfflineDownloadHttpTracker.beginSession()
         try {
-            val styleUrl = BasemapStyle.SHARED_STYLE_URL
+            val osmEnabled = globalState.osmBasemapEnabled.value
+            val terrainEnabled = globalState.terrainBasemapEnabled.value
+            val layersLabel = BasemapStyle.offlineLayersLabel(osmEnabled, terrainEnabled)
+            val styleUrl = BasemapStyle.offlineStyleUrl(osmEnabled, terrainEnabled)
+                ?: run {
+                    val message = "No basemap layers enabled. Enable OSM and/or Terrain in the sidebar."
+                    OfflineDownloadHttpTracker.logInfo(message)
+                    globalState.updateOfflineDownloadState(
+                        OfflineDownloadUiState(error = message, statusMessage = "Download failed"),
+                    )
+                    return@LaunchedEffect
+                }
+            OfflineDownloadHttpTracker.logInfo("layers: $layersLabel")
             OfflineDownloadHttpTracker.logInfo("style: $styleUrl")
 
             val definition = OfflinePackDefinition.TilePyramid(

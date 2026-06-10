@@ -315,13 +315,23 @@ fun MapContainer(
         }
     }
 
-    // MapLibre Map with OSM tiles - MapLibre handles tile fetching natively
-    Logger.log("MAP", LogLevel.INFO, "Using OpenStreetMap tiles - MapLibre handles fetching natively")
+    val osmBasemapEnabled by globalState.osmBasemapEnabled.collectAsState()
+    val terrainBasemapEnabled by globalState.terrainBasemapEnabled.collectAsState()
 
+    val baseStyle = if (osmBasemapEnabled) {
+        BaseStyle.Uri(BasemapStyle.STYLE_OSM)
+    } else {
+        BaseStyle.Json(BasemapStyle.EMPTY_STYLE_JSON)
+    }
+
+    // MapLibre Map with OSM tiles - MapLibre handles tile fetching natively
+    Logger.log("MAP", LogLevel.INFO, "Basemap OSM=$osmBasemapEnabled terrain=$terrainBasemapEnabled")
+
+    key(osmBasemapEnabled) {
     MaplibreMap(
         modifier = Modifier.fillMaxSize(),
         cameraState = cameraState,
-        baseStyle = BaseStyle.Uri(BasemapStyle.SHARED_STYLE_URL),
+        baseStyle = baseStyle,
         options = MapOptions(
             ornamentOptions = OrnamentOptions(
                 isLogoEnabled = false, // Remove MapLibre logo
@@ -368,8 +378,10 @@ fun MapContainer(
         // Offline region preview + MapLibre offline pack download (Android)
         OfflineRegionMapContent(globalState)
 
-        // Mapterhorn hillshade over OSM (online; not part of offline pack style)
-        MapterhornHillshadeLayer()
+        // Mapterhorn hillshade (live map only; offline uses hosted style when terrain is enabled)
+        if (terrainBasemapEnabled) {
+            MapterhornHillshadeLayer()
+        }
 
         // Add all module layers using the new LayerManager system
         // This provides hybrid support: new system if layers registered, fallback to old system
@@ -537,5 +549,6 @@ fun MapContainer(
 
         // ✅ ADD: Core marker layer (shared by all modules)
         CoreMarkerLayer()
+    }
     }
 }

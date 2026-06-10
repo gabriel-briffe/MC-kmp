@@ -12,7 +12,9 @@ data class GlobalAppSettings(
     val circleRadiusKm: Float = 0f,
     val vectorLengthKm: Float = 0f,
     val circleWidthDp: Float = 4f,  // Circle line width in dp
-    val vectorWidthDp: Float = 3f   // Vector line width in dp
+    val vectorWidthDp: Float = 3f,   // Vector line width in dp
+    val osmBasemapEnabled: Boolean = true,
+    val terrainBasemapEnabled: Boolean = true,
 ) {
     companion object {
         val DEFAULT = GlobalAppSettings()

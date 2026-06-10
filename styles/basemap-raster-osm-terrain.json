@@ -1,0 +1,49 @@
+{
+  "version": 8,
+  "name": "Mountain Circles OSM + Terrain",
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "scheme": "xyz",
+      "minzoom": 0,
+      "maxzoom": 18,
+      "attribution": "© OpenStreetMap contributors"
+    },
+    "mapterhorn-dem": {
+      "type": "raster-dem",
+      "tiles": [
+        "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
+      ],
+      "tileSize": 512,
+      "minzoom": 0,
+      "maxzoom": 14,
+      "encoding": "terrarium",
+      "attribution": "Terrain © Mapterhorn (https://mapterhorn.com/attribution)"
+    }
+  },
+  "layers": [
+    {
+      "id": "osm-layer",
+      "type": "raster",
+      "source": "osm",
+      "minzoom": 0,
+      "maxzoom": 18
+    },
+    {
+      "id": "mapterhorn-hillshade",
+      "type": "hillshade",
+      "source": "mapterhorn-dem",
+      "maxzoom": 14,
+      "paint": {
+        "hillshade-exaggeration": 0.4,
+        "hillshade-shadow-color": "#473B24",
+        "hillshade-highlight-color": "#ffffff",
+        "hillshade-illumination-direction": 310
+      }
+    }
+  ]
+}

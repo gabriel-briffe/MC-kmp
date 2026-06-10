@@ -43,6 +43,7 @@ import org.mountaincircles.app.state.GeoBounds
 import org.mountaincircles.app.state.GlobalState
 import org.mountaincircles.app.state.OfflineRegionConfig
 import org.mountaincircles.app.state.OfflineSelectionPhase
+import org.mountaincircles.app.ui.map.BasemapStyle
 import kotlin.math.abs
 
 actual val isOfflineRegionDownloadSupported: Boolean = true
@@ -71,6 +72,7 @@ actual fun OfflineRegionUi(globalState: GlobalState) {
         }
         OfflineSelectionPhase.Preview -> {
             OfflineRegionConfirmBar(
+                globalState = globalState,
                 onSave = { globalState.confirmOfflineRegionDownload() },
                 onRedraw = { globalState.redrawOfflineRegion() },
                 onCancel = { globalState.cancelOfflineRegionSelection() },
@@ -185,10 +187,15 @@ private fun OfflineRegionDrawingOverlay(
 
 @Composable
 private fun OfflineRegionConfirmBar(
+    globalState: GlobalState,
     onSave: () -> Unit,
     onRedraw: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val osmEnabled by globalState.osmBasemapEnabled.collectAsState()
+    val terrainEnabled by globalState.terrainBasemapEnabled.collectAsState()
+    val layersLabel = BasemapStyle.offlineLayersLabel(osmEnabled, terrainEnabled)
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Column(
             modifier = Modifier
@@ -205,7 +212,7 @@ private fun OfflineRegionConfirmBar(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "OSM tiles offline (zoom 0–${OfflineRegionConfig.MAX_ZOOM}). Mapterhorn hillshade still loads when online.",
+                text = "Stores $layersLabel offline (zoom 0–${OfflineRegionConfig.MAX_ZOOM}). Only layers enabled in Basemap are downloaded.",
                 color = Color.LightGray,
                 fontSize = 12.sp,
             )
