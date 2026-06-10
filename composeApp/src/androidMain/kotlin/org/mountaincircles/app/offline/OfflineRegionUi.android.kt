@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -75,13 +76,21 @@ actual fun OfflineRegionUi(globalState: GlobalState) {
             )
         }
         OfflineSelectionPhase.Downloading -> {
-            OfflineRegionProgressBar(
-                statusMessage = downloadState.statusMessage,
-                completed = downloadState.completedResources,
-                required = downloadState.requiredResources,
-                error = downloadState.error,
-                onDismiss = { globalState.cancelOfflineRegionSelection() },
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                OfflineDownloadDebugPanel(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.52f),
+                )
+                OfflineRegionProgressBar(
+                    statusMessage = downloadState.statusMessage,
+                    completed = downloadState.completedResources,
+                    required = downloadState.requiredResources,
+                    error = downloadState.error,
+                    onDismiss = { globalState.cancelOfflineRegionSelection() },
+                )
+            }
         }
         OfflineSelectionPhase.Idle -> Unit
     }

@@ -71,6 +71,7 @@ private fun OfflineRegionDownloadController(
     val offlineManager = rememberOfflineManager()
 
     LaunchedEffect(bounds) {
+        OfflineDownloadHttpTracker.beginSession()
         try {
             ensureBasemapStyleFile()
             val styleUrl = getBasemapStyleUrl()
@@ -147,6 +148,8 @@ private fun OfflineRegionDownloadController(
             globalState.updateOfflineDownloadState(
                 OfflineDownloadUiState(error = e.message ?: "Offline download failed", statusMessage = "Download failed")
             )
+        } finally {
+            OfflineDownloadHttpTracker.endSession()
         }
     }
 }
