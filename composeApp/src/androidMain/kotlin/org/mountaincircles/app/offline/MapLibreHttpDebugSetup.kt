@@ -8,15 +8,26 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Routes MapLibre tile/style HTTP through OkHttp with optional in-app tracing.
+ * Installed lazily when an offline download starts — not at app launch (avoids startup crash).
  */
-fun installMapLibreHttpDebugClient() {
-    val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .addInterceptor(OfflineDownloadHttpInterceptor())
-        .build()
-    HttpRequestUtil.setOkHttpClient(client)
+internal fun installMapLibreHttpDebugClientIfNeeded() {
+    if (installed) return
+    synchronized(InstallLock) {
+        if (installed) return
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(OfflineDownloadHttpInterceptor())
+            .build()
+        HttpRequestUtil.setOkHttpClient(client)
+        installed = true
+    }
 }
+
+private object InstallLock
+
+@Volatile
+private var installed = false
 
 private class OfflineDownloadHttpInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {

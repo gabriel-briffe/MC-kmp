@@ -58,3 +58,4 @@ There are **no Kotlin test sources** in this repo. Lint can be run with `./gradl
 - **Cloud VM emulator:** The Android emulator requires KVM (`/dev/kvm`). Cursor Cloud VMs typically **cannot** run the emulator; build the APK here and install it on a physical device or a local emulator instead.
 - **Gradle scaffolding:** Root `settings.gradle.kts`, `gradle/libs.versions.toml`, and the Gradle wrapper were added so the imported `composeApp` module can build standalone. MapLibre Compose **0.12.1** matches this codebase’s APIs.
 - **Dependencies:** Gradle resolves Maven dependencies during `assembleDebug`; no separate install step beyond the Android SDK.
+- **Offline HTTP debug:** `installMapLibreHttpDebugClientIfNeeded()` runs only when an offline download starts (`OfflineDownloadHttpTracker.beginSession()`). Do **not** call it from `MainActivity.onCreate()` — replacing MapLibre’s OkHttp client at launch can crash the app before the map loads.

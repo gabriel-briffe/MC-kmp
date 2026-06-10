@@ -10,7 +10,6 @@ import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.logger.LogConfig
 import org.mountaincircles.app.io.initializeAndroidAppStorage
 import org.mountaincircles.app.offline.ensureBasemapStyleFile
-import org.mountaincircles.app.offline.installMapLibreHttpDebugClient
 import org.mountaincircles.app.modules.skysight.initializeAndroidSkysight
 import org.mountaincircles.app.modules.circles.CirclesFilePickerManager
 import org.mountaincircles.app.modules.circles.setCirclesFilePickerManager
@@ -40,7 +39,6 @@ class MainActivity : ComponentActivity() {
 
         initializeAndroidAppStorage(this)
         ensureBasemapStyleFile()
-        installMapLibreHttpDebugClient()
 
         // Initialize Skysight system
         initializeAndroidSkysight(this)

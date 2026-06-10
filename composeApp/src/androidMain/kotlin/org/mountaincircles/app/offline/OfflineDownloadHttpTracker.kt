@@ -20,6 +20,7 @@ object OfflineDownloadHttpTracker {
         private set
 
     fun beginSession() {
+        installMapLibreHttpDebugClientIfNeeded()
         _lines.value = emptyList()
         isActive = true
         append("— offline download HTTP trace started —")
