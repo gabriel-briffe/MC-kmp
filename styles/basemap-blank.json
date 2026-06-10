@@ -1,0 +1,13 @@
+{
+  "version": 8,
+  "name": "Mountain Circles Blank",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#ffffff"
+      }
+    }
+  ]
+}

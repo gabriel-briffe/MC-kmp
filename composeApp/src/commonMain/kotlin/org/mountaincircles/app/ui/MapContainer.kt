@@ -321,13 +321,12 @@ fun MapContainer(
     val baseStyle = if (osmBasemapEnabled) {
         BaseStyle.Uri(BasemapStyle.STYLE_OSM)
     } else {
-        BaseStyle.Json(BasemapStyle.EMPTY_STYLE_JSON)
+        BaseStyle.Json(BasemapStyle.BLANK_STYLE_JSON)
     }
 
     // MapLibre Map with OSM tiles - MapLibre handles tile fetching natively
     Logger.log("MAP", LogLevel.INFO, "Basemap OSM=$osmBasemapEnabled terrain=$terrainBasemapEnabled")
 
-    key(osmBasemapEnabled) {
     MaplibreMap(
         modifier = Modifier.fillMaxSize(),
         cameraState = cameraState,
@@ -549,6 +548,5 @@ fun MapContainer(
 
         // ✅ ADD: Core marker layer (shared by all modules)
         CoreMarkerLayer()
-    }
     }
 }

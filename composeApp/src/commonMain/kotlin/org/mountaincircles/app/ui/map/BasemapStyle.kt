@@ -12,19 +12,12 @@ object BasemapStyle {
     const val STYLE_OSM_TERRAIN: String = "$BASE/basemap-raster-osm-terrain.json"
     const val STYLE_TERRAIN: String = "$BASE/basemap-terrain-only.json"
 
-    /** Neutral background when OSM is disabled on the live map. */
-    const val EMPTY_STYLE_JSON: String = """
-{
-    "version": 8,
-    "layers": [
-        {
-            "id": "background",
-            "type": "background",
-            "paint": { "background-color": "#d8d8d8" }
-        }
-    ]
-}
-"""
+    /** White background when OSM is disabled on the live map (no raster tiles). */
+    const val STYLE_BLANK: String = "$BASE/basemap-blank.json"
+
+    /** Inline style for live map when OSM is off (no network fetch; avoids map recreation). */
+    const val BLANK_STYLE_JSON: String =
+        """{"version":8,"layers":[{"id":"background","type":"background","paint":{"background-color":"#ffffff"}}]}"""
 
     /** HTTPS style for offline packs matching enabled basemap layers. */
     fun offlineStyleUrl(osmEnabled: Boolean, terrainEnabled: Boolean): String? = when {
