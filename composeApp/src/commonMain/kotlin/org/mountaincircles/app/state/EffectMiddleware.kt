@@ -317,7 +317,7 @@ val globalEffectMiddlewareManager = EffectMiddlewareManager()
  */
 fun initializeStandardEffectMiddleware() {
     // Register standard processors for all modules
-    val standardModules = listOf("circles", "wave", "geolocation", "maps")
+    val standardModules = listOf("circles", "wave", "geolocation")
 
     for (moduleId in standardModules) {
         val processor = ModuleEffectProcessor(moduleId)

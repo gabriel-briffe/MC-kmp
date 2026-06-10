@@ -8,7 +8,6 @@ import androidx.compose.ui.unit.dp
 import org.mountaincircles.app.modules.ModuleBase
 import org.mountaincircles.app.modules.airspace.AirspaceModule
 import org.mountaincircles.app.modules.circles.CirclesModule
-import org.mountaincircles.app.modules.maps.MapsModule
 import org.mountaincircles.app.modules.wave.WaveModule
 import org.mountaincircles.app.ui.modules.ComposableProvider
 import org.mountaincircles.app.ui.modules.ComposableProviderRegistry

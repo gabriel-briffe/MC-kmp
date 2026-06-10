@@ -263,7 +263,7 @@ class AirportsLayerManager(private val module: AirportsModule) {
         try {
             Logger.log("AIRPORTS", LogLevel.DEBUG, "Registering airports layers with LayerManager")
 
-            // Register the airports circles layer (just above maps_terrain)
+            // Register the airports circles layer (just above basemap hillshade)
             val airportsCirclesLayerId = LayerRegistrationHelper.registerLayer(
                 moduleId = "airports",
                 layerName = "airports_circles",

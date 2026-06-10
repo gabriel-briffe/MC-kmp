@@ -8,7 +8,7 @@ import androidx.core.view.WindowCompat
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.logger.LogConfig
-import org.mountaincircles.app.modules.maps.initializeAndroidMaps
+import org.mountaincircles.app.io.initializeAndroidAppStorage
 import org.mountaincircles.app.modules.skysight.initializeAndroidSkysight
 import org.mountaincircles.app.modules.circles.CirclesFilePickerManager
 import org.mountaincircles.app.modules.circles.setCirclesFilePickerManager
@@ -36,8 +36,7 @@ class MainActivity : ComponentActivity() {
 
         LogConfig.enableAll()
 
-        // Initialize maps system
-        initializeAndroidMaps(this)
+        initializeAndroidAppStorage(this)
 
         // Initialize Skysight system
         initializeAndroidSkysight(this)

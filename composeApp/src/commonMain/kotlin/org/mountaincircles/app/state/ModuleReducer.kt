@@ -138,7 +138,7 @@ object ModuleReducerFactory {
      * Register all standard module reducers
      */
     fun registerStandardReducers(registry: ReducerRegistry) {
-        val standardModules = listOf("circles", "wave", "geolocation", "maps")
+        val standardModules = listOf("circles", "wave", "geolocation")
 
         standardModules.forEach { moduleId ->
             val reducer = createBasicModuleReducer(moduleId)

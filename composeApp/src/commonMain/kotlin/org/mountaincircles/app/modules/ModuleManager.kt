@@ -6,7 +6,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
-import org.mountaincircles.app.modules.maps.MapsModule
 import org.mountaincircles.app.modules.wave.WaveModule
 import org.mountaincircles.app.modules.circles.CirclesModule
 import org.mountaincircles.app.modules.airspace.AirspaceModule
@@ -54,7 +53,6 @@ class ModuleManager private constructor() {
         Logger.log("MODULES", LogLevel.INFO, "Starting module registration...")
 
         val modules = listOf<ModuleBase>(
-            MapsModule(),         // Maps (base terrain layer)
             CirclesModule(),      // Circles (aviation data)
             WaveModule(),         // Wave (meteorological data)
             AirspaceModule(),     // Airspace (airspace data)

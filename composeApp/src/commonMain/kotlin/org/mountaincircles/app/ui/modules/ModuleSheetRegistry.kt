@@ -2,8 +2,6 @@ package org.mountaincircles.app.ui.modules
 
 import androidx.compose.runtime.Composable
 import org.mountaincircles.app.modules.ModuleBase
-import org.mountaincircles.app.modules.maps.MapsModule
-import org.mountaincircles.app.modules.maps.import.ui.MapsSheetProvider
 import org.mountaincircles.app.modules.wave.WaveModule
 import org.mountaincircles.app.modules.wave.import.ui.WaveSheetProvider
 import org.mountaincircles.app.modules.circles.CirclesModule
@@ -196,7 +194,6 @@ object ModuleSheetRegistry {
 
     init {
         // Register built-in providers
-        registry.registerProvider("maps", MapsSheetProvider())
         registry.registerProvider("wave", WaveSheetProvider())
         registry.registerProvider("circles", CirclesSheetProvider())
         registry.registerProvider("airspace", AirspaceSheetProvider())
@@ -244,7 +241,6 @@ object ModuleSheetRegistry {
      */
     fun getSheetTitle(module: ModuleBase): String {
         return when (module) {
-            is MapsModule -> "Import Hillshaded Maps"
             is WaveModule -> "Import Wave Forecasts"
             is CirclesModule -> "Import Circles Packs"
             is AirspaceModule -> "Import Airspace Data"

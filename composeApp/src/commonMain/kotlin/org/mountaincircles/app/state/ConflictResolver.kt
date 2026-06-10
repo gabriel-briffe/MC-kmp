@@ -291,22 +291,7 @@ object ConflictResolverFactory {
      */
     fun createCirclesResolver(): CustomConflictResolver {
         return createCustomResolver { module1, module2, state1, state2 ->
-            // Circles-specific conflict resolution logic
-            // For example, merge active configurations intelligently
-            when {
-                module1 == "circles" && module2 == "maps" -> {
-                    // Maps module should not override circles active config
-                    ConflictResolutionResult.Resolved(state1)
-                }
-                module1 == "maps" && module2 == "circles" -> {
-                    // Same logic, different order
-                    ConflictResolutionResult.Resolved(state2)
-                }
-                else -> {
-                    // Default to latest wins
-                    ConflictResolutionResult.Resolved(state1)
-                }
-            }
+            ConflictResolutionResult.Resolved(state1)
         }
     }
 
@@ -348,7 +333,6 @@ fun initializeDefaultConflictResolvers() {
         "circles" to 10,
         "wave" to 8,
         "geolocation" to 5,
-        "maps" to 3
     )
     registry.register("priority", ConflictResolverFactory.createPriorityBasedResolver(priorities))
 
