@@ -1,4 +1,6 @@
 import org.gradle.api.tasks.Copy
+import io.github.frankois944.spmForKmp.swiftPackageConfig
+import java.net.URI
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -6,28 +8,36 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.android.application")
     id("org.jetbrains.compose")
-    id("spm-maplibre")
+    id("io.github.frankois944.spmForKmp") version "1.9.1"
 }
 
 kotlin {
     androidTarget()
 
+    swiftPackageConfig {
+        create("spmMaplibre") {
+            dependency {
+                remotePackageVersion(
+                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+                    products = { add("MapLibre", exportToKotlin = true) },
+                    packageName = "maplibre-gl-native-distribution",
+                    version = project.properties["maplibreIosVersion"]!!.toString(),
+                )
+            }
+        }
+    }
+
     iosSimulatorArm64().apply {
         binaries.framework {
             baseName = "composeApp"
         }
-        configureSpmMaplibre(project)
+        val rpath =
+            "${layout.buildDirectory.get()}/spmKmpPlugin/iosSimulatorArm64/scratch/arm64-apple-ios-simulator/release/"
+        binaries.all { linkerOpts("-F$rpath", "-rpath", rpath) }
     }
 
     tasks.register("embedAndSignPodAppleFrameworkForXcode") {
         dependsOn("embedAndSignAppleFrameworkForXcode")
-    }
-
-    swiftPackageConfig {
-        getByName("spmMaplibre") {
-            @OptIn(io.github.frankois944.spmForKmp.utils.ExperimentalSpmForKmpFeature::class)
-            copyDependenciesToApp = true
-        }
     }
 
     sourceSets {
@@ -41,10 +51,11 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.components.resources)
                 implementation(libs.maplibre.compose)
+                implementation(libs.spatialk.geojson)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-                implementation("org.jetbrains.kotlin:kotlin-reflect:2.2.0")
+                implementation("org.jetbrains.kotlin:kotlin-reflect:2.3.21")
                 implementation("io.ktor:ktor-client-core:2.3.12")
                 implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
@@ -52,6 +63,7 @@ kotlin {
         }
         androidMain {
             dependencies {
+                implementation(libs.maplibre.android)
                 implementation("androidx.activity:activity-compose:1.9.1")
                 implementation("io.ktor:ktor-client-okhttp:2.3.12")
                 implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -82,6 +94,14 @@ kotlin {
             }
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+compose.resources {
+    packageOfResClass = "mountaincircles.composeapp.generated.resources"
 }
 
 // Copy fonts to iOS app bundle
@@ -185,11 +205,12 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.7.1"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildTypes {
