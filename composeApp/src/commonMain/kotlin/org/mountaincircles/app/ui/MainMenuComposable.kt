@@ -20,6 +20,7 @@ import org.mountaincircles.app.ui.components.GenericBottomSheet
 import org.mountaincircles.app.ui.components.BottomSheetConfigs
 import org.mountaincircles.app.ui.theme.AppTheme
 import org.mountaincircles.app.ui.AboutComposable
+import org.mountaincircles.app.offline.isOfflineRegionDownloadSupported
 
 @Composable
 fun MainMenuComposable(
@@ -69,6 +70,47 @@ fun MainMenuComposable(
 
                 // Separator between module actions and core menu items
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (isOfflineRegionDownloadSupported) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable {
+                                Logger.log("UI", LogLevel.INFO, "MainMenu: Store offline clicked")
+                                globalState.startOfflineRegionSelection()
+                            },
+                        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                painter = AppIcons.Download(),
+                                contentDescription = "Store offline",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Store offline",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "Download map area for offline use (zoom 0–7)",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
                 
                 // Settings button
                 Card(
