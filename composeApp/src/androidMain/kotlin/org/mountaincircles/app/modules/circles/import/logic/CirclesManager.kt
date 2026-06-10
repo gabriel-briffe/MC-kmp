@@ -9,7 +9,7 @@ import kotlinx.serialization.json.jsonArray
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.modules.circles.logic.data.PackMetadata
-import org.mountaincircles.app.modules.maps.getMapsDirectory
+import org.mountaincircles.app.io.getFilesDirectory
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
@@ -24,8 +24,7 @@ actual class CirclesManager {
      * Get the circles data directory path
      */
     actual fun getCirclesDirectory(): String {
-        val mapsDir = getMapsDirectory() // Reuse maps directory helper
-        val circlesDir = File(mapsDir.parentFile, "circles")
+        val circlesDir = File(getFilesDirectory(), "circles")
         if (!circlesDir.exists()) {
             circlesDir.mkdirs()
             Logger.log("CIRCLES_MANAGER", LogLevel.DEBUG, "Created circles directory: ${circlesDir.absolutePath}")

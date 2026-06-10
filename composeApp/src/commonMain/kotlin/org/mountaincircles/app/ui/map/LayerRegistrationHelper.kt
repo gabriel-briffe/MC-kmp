@@ -185,7 +185,7 @@ object LayerZIndex {
     // Layer ordering - z-index = index position in this list
     val layerOrder = listOf(
         // BOTTOM LAYERS (rendered first)
-        "maps_terrain",
+        "mapterhorn_hillshade",
 
         // CIRCLES LAYERS - Aviation circles data
         "circles_polygons",

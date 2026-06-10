@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
-import org.mountaincircles.app.modules.maps.getMapsDirectory
+import org.mountaincircles.app.io.getFilesDirectory
 import org.mountaincircles.app.modules.wave.logic.data.WaveEntry
 import java.io.File
 
@@ -19,8 +19,7 @@ actual class WaveManager {
      * Get wave directory (create if doesn't exist)
      */
     actual fun getWaveDirectory(): String {
-        val mapsDir = getMapsDirectory() // Reuse maps directory helper
-        val waveDir = File(mapsDir.parentFile, "wave")
+        val waveDir = File(getFilesDirectory(), "wave")
         if (!waveDir.exists()) {
             waveDir.mkdirs()
         }

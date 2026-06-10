@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.modules.ModuleBase
-import org.mountaincircles.app.modules.maps.MapsModule
 import org.mountaincircles.app.modules.wave.WaveModule
 import org.mountaincircles.app.modules.circles.CirclesModule
 
@@ -28,11 +27,6 @@ object ModuleLayerRegistry {
     @Composable
     fun RenderModuleLayers(module: ModuleBase) {
         when (module) {
-            is MapsModule -> {
-                Logger.log("LAYER_REGISTRY", LogLevel.DEBUG,
-                    "Rendering MapsModule with LayerManager system")
-                // LayerManager handles rendering through LayerManagerComposables
-            }
             is WaveModule -> {
                 Logger.log("LAYER_REGISTRY", LogLevel.DEBUG,
                     "Rendering WaveModule with LayerManager system")
@@ -72,11 +66,6 @@ object ModuleLayerRegistry {
      */
     fun hasMapLayers(module: ModuleBase): Boolean {
         return when (module) {
-            is MapsModule -> {
-                Logger.log("LAYER_REGISTRY", LogLevel.DEBUG,
-                    "MapsModule has LayerManager layers")
-                true
-            }
             is WaveModule -> {
                 Logger.log("LAYER_REGISTRY", LogLevel.DEBUG,
                     "WaveModule has LayerManager layers")
