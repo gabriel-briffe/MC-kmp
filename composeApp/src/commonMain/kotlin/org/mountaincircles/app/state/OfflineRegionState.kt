@@ -52,5 +52,5 @@ data class OfflineDownloadUiState(
 
 object OfflineRegionConfig {
     const val MIN_ZOOM = 0
-    const val MAX_ZOOM = 7
+    const val MAX_ZOOM = 10
 }
