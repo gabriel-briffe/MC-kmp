@@ -20,6 +20,7 @@ import org.mountaincircles.app.ui.components.GenericBottomSheet
 import org.mountaincircles.app.ui.components.BottomSheetConfigs
 import org.mountaincircles.app.ui.theme.AppTheme
 import org.mountaincircles.app.ui.AboutComposable
+import org.mountaincircles.app.state.OfflineRegionConfig
 import org.mountaincircles.app.offline.isOfflineRegionDownloadSupported
 import org.mountaincircles.app.ui.map.BasemapStyle
 
@@ -116,7 +117,7 @@ fun MainMenuComposable(
                                 )
                                 Text(
                                     text = if (offlineBasemapReady) {
-                                        "Download $offlineLayersLabel for offline use (zoom 0–7)"
+                                        "Download $offlineLayersLabel for offline use (zoom 0–${OfflineRegionConfig.MAX_ZOOM})"
                                     } else {
                                         "Enable OSM and/or Terrain in the Basemap sidebar"
                                     },
