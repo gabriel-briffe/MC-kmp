@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Mountain Circles</string>
     <string name="widget_today_name">Wave Today 4200m 12:00</string>
     <string name="widget_tomorrow_name">Wave Tomorrow 4200m 12:00</string>
     <string name="widget_meteogram_glance_name">Meteogram</string>
