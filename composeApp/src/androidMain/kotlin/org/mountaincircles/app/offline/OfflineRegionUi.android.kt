@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
@@ -75,13 +77,31 @@ actual fun OfflineRegionUi(globalState: GlobalState) {
             )
         }
         OfflineSelectionPhase.Downloading -> {
-            OfflineRegionProgressBar(
-                statusMessage = downloadState.statusMessage,
-                completed = downloadState.completedResources,
-                required = downloadState.requiredResources,
-                error = downloadState.error,
-                onDismiss = { globalState.cancelOfflineRegionSelection() },
-            )
+            var debugPanelVisible by remember { mutableStateOf(true) }
+            val context = LocalContext.current
+            val traceLines by OfflineDownloadHttpTracker.lines.collectAsState()
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (debugPanelVisible) {
+                    OfflineDownloadDebugPanel(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.52f),
+                        onClose = { debugPanelVisible = false },
+                    )
+                }
+                OfflineRegionProgressBar(
+                    statusMessage = downloadState.statusMessage,
+                    completed = downloadState.completedResources,
+                    required = downloadState.requiredResources,
+                    error = downloadState.error,
+                    onDismiss = { globalState.cancelOfflineRegionSelection() },
+                    onShowTrace = if (!debugPanelVisible) {{ debugPanelVisible = true }} else null,
+                    onCopyTrace = if (!debugPanelVisible && traceLines.isNotEmpty()) {
+                        { copyTraceToClipboard(context, traceLines) }
+                    } else null,
+                )
+            }
         }
         OfflineSelectionPhase.Idle -> Unit
     }
@@ -218,6 +238,8 @@ private fun OfflineRegionProgressBar(
     required: Long,
     error: String?,
     onDismiss: () -> Unit,
+    onShowTrace: (() -> Unit)? = null,
+    onCopyTrace: (() -> Unit)? = null,
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Column(
@@ -243,6 +265,22 @@ private fun OfflineRegionProgressBar(
             if (error != null) {
                 Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                     Text("Dismiss")
+                }
+            } else if (onShowTrace != null || onCopyTrace != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (onCopyTrace != null) {
+                        OutlinedButton(onClick = onCopyTrace, modifier = Modifier.weight(1f)) {
+                            Text("Copy trace")
+                        }
+                    }
+                    if (onShowTrace != null) {
+                        OutlinedButton(onClick = onShowTrace, modifier = Modifier.weight(1f)) {
+                            Text("Show trace")
+                        }
+                    }
                 }
             }
         }
