@@ -1,0 +1,60 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: ./gradlew :composeApp:assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare APK for download
+        run: |
+          cp composeApp/build/outputs/apk/debug/composeApp-debug.apk mountain-circles-debug.apk
+          ls -lh mountain-circles-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mountain-circles-debug-apk
+          path: mountain-circles-debug.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Android debug APK"
+            echo ""
+            echo "Download **mountain-circles-debug-apk** from the Artifacts section of this workflow run."
+            echo ""
+            echo "On a phone: open this run in the GitHub app → scroll to Artifacts → download \`mountain-circles-debug.apk\`."
+            echo ""
+            echo "Install: \`adb install -r mountain-circles-debug.apk\` or tap the file on your device."
+          } >> "$GITHUB_STEP_SUMMARY"

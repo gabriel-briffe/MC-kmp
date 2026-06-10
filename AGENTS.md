@@ -32,6 +32,21 @@ adb install -r composeApp/build/outputs/apk/debug/composeApp-debug.apk
 
 The app needs **internet** for the base OpenStreetMap tiles. Location permission is optional but enables the GPS puck.
 
+## Download the APK from your phone (GitHub Actions)
+
+A workflow builds the debug APK on GitHub’s servers so you do not need a local build machine.
+
+1. Open the repo on GitHub (mobile app or browser).
+2. Go to **Actions** → **Build Android APK**.
+3. Tap **Run workflow** (choose branch `main`) and start the run.
+4. When it finishes (green check), open the run → scroll to **Artifacts**.
+5. Download **mountain-circles-debug-apk** (`mountain-circles-debug.apk`).
+6. Install on your phone (tap the file, or use `adb install -r mountain-circles-debug.apk`).
+
+Pushes to `main` also trigger a build automatically; use the latest successful run’s artifact.
+
+Artifacts are kept for **90 days**.
+
 ## Lint / tests
 
 There are **no Kotlin test sources** in this repo. Lint can be run with `./gradlew :composeApp:lintDebug` but is not required for producing the debug APK.
