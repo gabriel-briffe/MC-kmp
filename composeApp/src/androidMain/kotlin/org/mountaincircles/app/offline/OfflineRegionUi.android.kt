@@ -205,7 +205,7 @@ private fun OfflineRegionConfirmBar(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "OSM + Mapterhorn tiles, zoom 0–${OfflineRegionConfig.MAX_ZOOM}. Other areas still stream when online.",
+                text = "OSM tiles offline (zoom 0–${OfflineRegionConfig.MAX_ZOOM}). Mapterhorn hillshade still loads when online.",
                 color = Color.LightGray,
                 fontSize = 12.sp,
             )

@@ -1,18 +1,23 @@
 package org.mountaincircles.app.ui.map
 
+import org.mountaincircles.app.state.OfflineRegionConfig
+
 /**
  * Unified basemap style: OSM raster + Mapterhorn Terrarium DEM hillshade.
- * Used for live rendering and MapLibre offline region packs (same tile URLs).
+ * Live map uses [buildJson]; offline packs use [buildOfflinePackJson] (OSM tiles only).
  */
 object BasemapStyle {
     /**
-     * Style for MapLibre offline packs: no glyphs/sprite (no symbol layers).
-     * Empty [sprite] in the live style can stall offline resource enumeration.
+     * Style for MapLibre offline packs.
+     *
+     * OSM raster only — MapLibre offline tile pyramids do not reliably prefetch
+     * `raster-dem` / hillshade layers (pack stays at required=1 with no tile HTTP).
+     * Hillshade continues to stream online via [buildJson] on the live map.
      */
     fun buildOfflinePackJson(): String = """
 {
     "version": 8,
-    "name": "Mountain Circles Offline Basemap",
+    "name": "Mountain Circles Offline OSM",
     "sources": {
         "osm": {
             "type": "raster",
@@ -20,20 +25,10 @@ object BasemapStyle {
                 "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
             ],
             "tileSize": 256,
+            "scheme": "xyz",
             "minzoom": 0,
-            "maxzoom": 18,
+            "maxzoom": ${OfflineRegionConfig.MAX_ZOOM},
             "attribution": "© OpenStreetMap contributors"
-        },
-        "mapterhorn-dem": {
-            "type": "raster-dem",
-            "tiles": [
-                "${MapterhornConfig.TILE_URL_TEMPLATE}"
-            ],
-            "tileSize": ${MapterhornConfig.TILE_SIZE},
-            "minzoom": 0,
-            "maxzoom": ${MapterhornConfig.MAX_ZOOM},
-            "encoding": "terrarium",
-            "attribution": "${MapterhornConfig.ATTRIBUTION}"
         }
     },
     "layers": [
@@ -42,19 +37,7 @@ object BasemapStyle {
             "type": "raster",
             "source": "osm",
             "minzoom": 0,
-            "maxzoom": 18
-        },
-        {
-            "id": "mapterhorn-hillshade",
-            "type": "hillshade",
-            "source": "mapterhorn-dem",
-            "maxzoom": ${MapterhornConfig.MAX_ZOOM},
-            "paint": {
-                "hillshade-exaggeration": ${MapterhornConfig.HILLSHADE_EXAGGERATION},
-                "hillshade-shadow-color": "#473B24",
-                "hillshade-highlight-color": "#ffffff",
-                "hillshade-illumination-direction": ${MapterhornConfig.HILLSHADE_ILLUMINATION_DIRECTION.toInt()}
-            }
+            "maxzoom": ${OfflineRegionConfig.MAX_ZOOM}
         }
     ]
 }

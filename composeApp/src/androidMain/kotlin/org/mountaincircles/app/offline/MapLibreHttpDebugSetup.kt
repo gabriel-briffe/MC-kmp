@@ -53,8 +53,14 @@ private var installed = false
 
 private class OfflineDownloadHttpInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
-        val request = chain.request()
+        var request = chain.request()
         val url = request.url.toString()
+
+        if (request.url.host.endsWith("openstreetmap.org")) {
+            request = request.newBuilder()
+                .header("User-Agent", "MountainCirclesOffline/1.0 (+https://github.com/gabriel-briffe/MC-kmp)")
+                .build()
+        }
 
         if (OfflineDownloadHttpTracker.isActive) {
             OfflineDownloadHttpTracker.logRequest(url)

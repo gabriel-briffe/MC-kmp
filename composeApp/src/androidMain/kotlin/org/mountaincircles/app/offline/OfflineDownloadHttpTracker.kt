@@ -20,10 +20,15 @@ object OfflineDownloadHttpTracker {
         private set
 
     fun beginSession() {
-        installMapLibreHttpDebugClientIfNeeded()
         _lines.value = emptyList()
         isActive = true
         append("— offline download trace started —")
+    }
+
+    /** Install HTTP tracing after pack create — avoids interfering with style enumeration. */
+    fun enableHttpTracing() {
+        installMapLibreHttpDebugClientIfNeeded()
+        logInfo("HTTP trace enabled")
     }
 
     /** Lifecycle / progress lines shown in the same panel as HTTP trace. */

@@ -98,6 +98,7 @@ private fun OfflineRegionDownloadController(
                 offlineManager.create(definition, byteArrayOf())
             }
             OfflineDownloadHttpTracker.logInfo("pack created, starting download")
+            OfflineDownloadHttpTracker.enableHttpTracing()
 
             offlineManager.resume(pack)
 
@@ -117,7 +118,8 @@ private fun OfflineRegionDownloadController(
                                 OfflineDownloadHttpTracker.logInfo("waiting for tile list (required=0 so far)…")
                             } else {
                                 OfflineDownloadHttpTracker.logInfo(
-                                    "progress ${progress.completedResourceCount}/${progress.requiredResourceCount} ($pct%)",
+                                    "progress ${progress.completedResourceCount}/${progress.requiredResourceCount} ($pct%) " +
+                                        "tiles=${progress.completedTileCount} precise=${progress.isRequiredResourceCountPrecise}",
                                 )
                             }
                         }
