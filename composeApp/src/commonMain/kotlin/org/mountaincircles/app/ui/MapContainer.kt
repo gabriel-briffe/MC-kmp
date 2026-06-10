@@ -36,9 +36,9 @@ import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.state.GlobalState
 import org.mountaincircles.app.ui.map.BasemapStyle
+import org.mountaincircles.app.ui.map.MapterhornHillshadeLayer
 import org.mountaincircles.app.ui.map.LayerManagerComposables
 import org.mountaincircles.app.offline.OfflineRegionMapContent
-import org.mountaincircles.app.ui.glyphsBaseUri
 import org.mountaincircles.app.modules.wave.logic.data.RasterData
 import org.mountaincircles.app.modules.wave.logic.data.WaveSelection
 import org.mountaincircles.app.ui.AppIcons
@@ -318,12 +318,10 @@ fun MapContainer(
     // MapLibre Map with OSM tiles - MapLibre handles tile fetching natively
     Logger.log("MAP", LogLevel.INFO, "Using OpenStreetMap tiles - MapLibre handles fetching natively")
 
-    val basemapStyleJson = remember { BasemapStyle.buildJson(glyphsBaseUri) }
-
     MaplibreMap(
         modifier = Modifier.fillMaxSize(),
         cameraState = cameraState,
-        baseStyle = BaseStyle.Json(basemapStyleJson),
+        baseStyle = BaseStyle.Uri(BasemapStyle.SHARED_STYLE_URL),
         options = MapOptions(
             ornamentOptions = OrnamentOptions(
                 isLogoEnabled = false, // Remove MapLibre logo
@@ -369,6 +367,9 @@ fun MapContainer(
 
         // Offline region preview + MapLibre offline pack download (Android)
         OfflineRegionMapContent(globalState)
+
+        // Mapterhorn hillshade over OSM (online; not part of offline pack style)
+        MapterhornHillshadeLayer()
 
         // Add all module layers using the new LayerManager system
         // This provides hybrid support: new system if layers registered, fallback to old system

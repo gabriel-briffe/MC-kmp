@@ -26,6 +26,7 @@ import org.mountaincircles.app.state.GeoBounds
 import org.mountaincircles.app.state.GlobalState
 import org.mountaincircles.app.state.OfflineDownloadUiState
 import org.mountaincircles.app.state.OfflineRegionConfig
+import org.mountaincircles.app.ui.map.BasemapStyle
 
 private const val CREATE_PACK_TIMEOUT_MS = 90_000L
 
@@ -76,9 +77,8 @@ private fun OfflineRegionDownloadController(
     LaunchedEffect(bounds) {
         OfflineDownloadHttpTracker.beginSession()
         try {
-            val styleFile = ensureBasemapStyleFile()
-            val styleUrl = getBasemapStyleUrl()
-            OfflineDownloadHttpTracker.logInfo("style: $styleUrl (${styleFile.length()} bytes)")
+            val styleUrl = BasemapStyle.SHARED_STYLE_URL
+            OfflineDownloadHttpTracker.logInfo("style: $styleUrl")
 
             val definition = OfflinePackDefinition.TilePyramid(
                 styleUrl = styleUrl,
