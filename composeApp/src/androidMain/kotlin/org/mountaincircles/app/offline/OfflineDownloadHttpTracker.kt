@@ -23,7 +23,13 @@ object OfflineDownloadHttpTracker {
         installMapLibreHttpDebugClientIfNeeded()
         _lines.value = emptyList()
         isActive = true
-        append("— offline download HTTP trace started —")
+        append("— offline download trace started —")
+    }
+
+    /** Lifecycle / progress lines shown in the same panel as HTTP trace. */
+    fun logInfo(message: String) {
+        if (!isActive) return
+        append("• $message")
     }
 
     fun endSession() {

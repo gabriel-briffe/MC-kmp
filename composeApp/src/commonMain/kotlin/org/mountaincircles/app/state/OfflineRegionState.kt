@@ -1,5 +1,6 @@
 package org.mountaincircles.app.state
 
+import org.maplibre.spatialk.geojson.BoundingBox
 import org.maplibre.spatialk.geojson.Polygon
 
 /** Geographic bounds [west, south, east, north] in WGS84 degrees. */
@@ -14,15 +15,18 @@ data class GeoBounds(
         require(south < north) { "south must be less than north" }
     }
 
+    fun toBoundingBox(): BoundingBox = BoundingBox(west, south, east, north)
+
+    /** Counter-clockwise outer ring (GeoJSON / MapLibre offline geometry convention). */
     fun toPolygon(): Polygon {
         val json = """
             {
                 "type": "Polygon",
                 "coordinates": [[
                     [$west, $south],
-                    [$east, $south],
-                    [$east, $north],
                     [$west, $north],
+                    [$east, $north],
+                    [$east, $south],
                     [$west, $south]
                 ]]
             }

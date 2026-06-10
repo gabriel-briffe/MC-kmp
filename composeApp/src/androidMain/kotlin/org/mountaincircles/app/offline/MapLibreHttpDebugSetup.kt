@@ -1,5 +1,7 @@
 package org.mountaincircles.app.offline
 
+import okhttp3.Call
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.maplibre.android.module.http.HttpRequestUtil
@@ -7,21 +9,41 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Routes MapLibre tile/style HTTP through OkHttp with optional in-app tracing.
- * Installed lazily when an offline download starts — not at app launch (avoids startup crash).
+ * Adds in-app HTTP tracing on top of MapLibre's existing OkHttp client.
+ * Installed lazily when an offline download starts — not at app launch.
  */
 internal fun installMapLibreHttpDebugClientIfNeeded() {
     if (installed) return
     synchronized(InstallLock) {
         if (installed) return
-        val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .addInterceptor(OfflineDownloadHttpInterceptor())
-            .build()
-        HttpRequestUtil.setOkHttpClient(client)
+        val tracedClient = wrapWithTraceInterceptor(currentMapLibreCallFactory())
+        HttpRequestUtil.setOkHttpClient(tracedClient)
         installed = true
     }
+}
+
+private fun wrapWithTraceInterceptor(factory: Call.Factory): OkHttpClient {
+    val builder = when (factory) {
+        is OkHttpClient -> factory.newBuilder()
+        else -> OkHttpClient.Builder().dispatcher(mapLibreDispatcher())
+    }
+    return builder
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .addInterceptor(OfflineDownloadHttpInterceptor())
+        .build()
+}
+
+/** Preserve MapLibre's per-host concurrency (20 on API 21+). */
+private fun mapLibreDispatcher(): Dispatcher =
+    Dispatcher().apply { maxRequestsPerHost = 20 }
+
+private fun currentMapLibreCallFactory(): Call.Factory {
+    val implClass = Class.forName("org.maplibre.android.module.http.HttpRequestImpl")
+    val field = implClass.getDeclaredField("client")
+    field.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    return field.get(null) as Call.Factory
 }
 
 private object InstallLock

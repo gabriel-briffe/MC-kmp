@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import org.maplibre.compose.layers.FillLayer
 import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.offline.DownloadProgress
@@ -24,7 +26,8 @@ import org.mountaincircles.app.state.GeoBounds
 import org.mountaincircles.app.state.GlobalState
 import org.mountaincircles.app.state.OfflineDownloadUiState
 import org.mountaincircles.app.state.OfflineRegionConfig
-import org.mountaincircles.app.state.OfflineSelectionPhase
+
+private const val CREATE_PACK_TIMEOUT_MS = 90_000L
 
 @Composable
 actual fun OfflineRegionMapContent(globalState: GlobalState) {
@@ -73,21 +76,32 @@ private fun OfflineRegionDownloadController(
     LaunchedEffect(bounds) {
         OfflineDownloadHttpTracker.beginSession()
         try {
-            ensureBasemapStyleFile()
+            val styleFile = ensureBasemapStyleFile()
             val styleUrl = getBasemapStyleUrl()
-            val polygon = bounds.toPolygon()
-            val definition = OfflinePackDefinition.Shape(
+            OfflineDownloadHttpTracker.logInfo("style: $styleUrl (${styleFile.length()} bytes)")
+
+            val definition = OfflinePackDefinition.TilePyramid(
                 styleUrl = styleUrl,
-                shape = polygon,
+                bounds = bounds.toBoundingBox(),
                 minZoom = OfflineRegionConfig.MIN_ZOOM,
                 maxZoom = OfflineRegionConfig.MAX_ZOOM,
             )
 
             Logger.log("OFFLINE", LogLevel.INFO, "Creating offline pack for $bounds (z${OfflineRegionConfig.MIN_ZOOM}–${OfflineRegionConfig.MAX_ZOOM})")
+            OfflineDownloadHttpTracker.logInfo(
+                "region z${OfflineRegionConfig.MIN_ZOOM}–${OfflineRegionConfig.MAX_ZOOM} " +
+                    "[${bounds.west},${bounds.south} → ${bounds.east},${bounds.north}]",
+            )
+            OfflineDownloadHttpTracker.logInfo("creating offline pack…")
 
-            val pack = offlineManager.create(definition, byteArrayOf())
+            val pack = withTimeout(CREATE_PACK_TIMEOUT_MS) {
+                offlineManager.create(definition, byteArrayOf())
+            }
+            OfflineDownloadHttpTracker.logInfo("pack created, starting download")
+
             offlineManager.resume(pack)
 
+            var lastLoggedProgress: Pair<Long, Long>? = null
             snapshotFlow { pack.downloadProgress }.collect { progress ->
                 when (progress) {
                     is DownloadProgress.Healthy -> {
@@ -96,12 +110,27 @@ private fun OfflineRegionDownloadController(
                         } else {
                             0
                         }
+                        val progressKey = progress.completedResourceCount to progress.requiredResourceCount
+                        if (lastLoggedProgress != progressKey) {
+                            lastLoggedProgress = progressKey
+                            if (progress.requiredResourceCount == 0L && progress.completedResourceCount == 0L) {
+                                OfflineDownloadHttpTracker.logInfo("waiting for tile list (required=0 so far)…")
+                            } else {
+                                OfflineDownloadHttpTracker.logInfo(
+                                    "progress ${progress.completedResourceCount}/${progress.requiredResourceCount} ($pct%)",
+                                )
+                            }
+                        }
                         globalState.updateOfflineDownloadState(
                             OfflineDownloadUiState(
                                 completedResources = progress.completedResourceCount,
                                 requiredResources = progress.requiredResourceCount,
                                 statusMessage = when (progress.status) {
-                                    DownloadStatus.Downloading -> "Downloading… $pct%"
+                                    DownloadStatus.Downloading -> if (progress.requiredResourceCount > 0) {
+                                        "Downloading… $pct%"
+                                    } else {
+                                        "Preparing tiles…"
+                                    }
                                     DownloadStatus.Complete -> "Download complete"
                                     DownloadStatus.Paused -> "Paused"
                                 },
@@ -115,6 +144,7 @@ private fun OfflineRegionDownloadController(
                     }
                     is DownloadProgress.Error -> {
                         Logger.log("OFFLINE", LogLevel.ERROR, "Offline download error: ${progress.reason} - ${progress.message}")
+                        OfflineDownloadHttpTracker.logInfo("error: ${progress.reason} — ${progress.message}")
                         globalState.updateOfflineDownloadState(
                             OfflineDownloadUiState(
                                 error = progress.message ?: progress.reason,
@@ -124,6 +154,7 @@ private fun OfflineRegionDownloadController(
                     }
                     is DownloadProgress.TileLimitExceeded -> {
                         Logger.log("OFFLINE", LogLevel.ERROR, "Tile limit exceeded: ${progress.limit}")
+                        OfflineDownloadHttpTracker.logInfo("tile limit exceeded: ${progress.limit}")
                         globalState.updateOfflineDownloadState(
                             OfflineDownloadUiState(
                                 error = "Tile limit exceeded (${progress.limit}). Try a smaller area.",
@@ -132,19 +163,29 @@ private fun OfflineRegionDownloadController(
                         )
                     }
                     is DownloadProgress.Unknown -> {
+                        OfflineDownloadHttpTracker.logInfo("status unknown")
                         globalState.updateOfflineDownloadState(
-                            OfflineDownloadUiState(statusMessage = "Downloading…")
+                            OfflineDownloadUiState(statusMessage = "Preparing download…")
                         )
                     }
                 }
             }
+        } catch (e: TimeoutCancellationException) {
+            val message = "Timed out creating offline pack (style or region). Check style URL in trace."
+            Logger.log("OFFLINE", LogLevel.ERROR, message, e)
+            OfflineDownloadHttpTracker.logInfo(message)
+            globalState.updateOfflineDownloadState(
+                OfflineDownloadUiState(error = message, statusMessage = "Download failed")
+            )
         } catch (e: OfflineManagerException) {
             Logger.log("OFFLINE", LogLevel.ERROR, "OfflineManager error: ${e.message}", e)
+            OfflineDownloadHttpTracker.logInfo("offline manager: ${e.message}")
             globalState.updateOfflineDownloadState(
                 OfflineDownloadUiState(error = e.message ?: "Offline download failed", statusMessage = "Download failed")
             )
         } catch (e: Exception) {
             Logger.log("OFFLINE", LogLevel.ERROR, "Offline download failed: ${e.message}", e)
+            OfflineDownloadHttpTracker.logInfo("failed: ${e.message}")
             globalState.updateOfflineDownloadState(
                 OfflineDownloadUiState(error = e.message ?: "Offline download failed", statusMessage = "Download failed")
             )
@@ -162,9 +203,9 @@ private fun boundsToGeoJsonFeature(bounds: GeoBounds): String = """
         "type": "Polygon",
         "coordinates": [[
             [${bounds.west}, ${bounds.south}],
-            [${bounds.east}, ${bounds.south}],
-            [${bounds.east}, ${bounds.north}],
             [${bounds.west}, ${bounds.north}],
+            [${bounds.east}, ${bounds.north}],
+            [${bounds.east}, ${bounds.south}],
             [${bounds.west}, ${bounds.south}]
         ]]
     }
