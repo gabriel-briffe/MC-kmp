@@ -36,6 +36,7 @@ import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.state.GlobalState
 import org.mountaincircles.app.ui.map.LayerManagerComposables
+import org.mountaincircles.app.ui.map.MapterhornHillshadeLayer
 import org.mountaincircles.app.modules.wave.logic.data.RasterData
 import org.mountaincircles.app.modules.wave.logic.data.WaveSelection
 import org.mountaincircles.app.ui.AppIcons
@@ -399,6 +400,9 @@ fun MapContainer(
 
             Logger.log("MAP", LogLevel.INFO, "globalState.onMapReady() completed")
         }
+
+        // Global Mapterhorn hillshade over the OSM basemap (MountainCircles---map Cloudflare branch)
+        MapterhornHillshadeLayer()
 
         // Add all module layers using the new LayerManager system
         // This provides hybrid support: new system if layers registered, fallback to old system

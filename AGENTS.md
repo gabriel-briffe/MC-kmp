@@ -30,7 +30,7 @@ Install on a device or local emulator:
 adb install -r composeApp/build/outputs/apk/debug/composeApp-debug.apk
 ```
 
-The app needs **internet** for the base OpenStreetMap tiles. Location permission is optional but enables the GPS puck.
+The app needs **internet** for the base OpenStreetMap tiles and the default **Mapterhorn** hillshade layer (`https://tiles.mapterhorn.com`). Location permission is optional but enables the GPS puck.
 
 ## Download the APK from your phone (GitHub Actions)
 
