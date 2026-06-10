@@ -51,6 +51,7 @@ import org.mountaincircles.app.ui.SubmenuComposable
 import org.mountaincircles.app.ui.overlay.MapWithOverlays
 import org.mountaincircles.app.ui.MapContainer
 import org.mountaincircles.app.ui.MapOverlaysContainer
+import org.mountaincircles.app.offline.OfflineRegionUi
 
 // STEP 3.2: LocationProvider infrastructure prepared
 
@@ -97,7 +98,7 @@ fun MainMapComposable(
             globalState = globalState
         )
 
-
+        OfflineRegionUi(globalState)
 
         // Phase 2: Extracted UI components into ModuleUIContainer
         ModuleUIContainer(

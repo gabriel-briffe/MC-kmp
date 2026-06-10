@@ -14,6 +14,9 @@ import org.mountaincircles.app.persistence.DataManager
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.ui.map.MapClickEvent
+import org.mountaincircles.app.state.GeoBounds
+import org.mountaincircles.app.state.OfflineDownloadUiState
+import org.mountaincircles.app.state.OfflineSelectionPhase
 
 
 class GlobalState {
@@ -84,6 +87,71 @@ class GlobalState {
 
     // Module management
     val moduleManager = ModuleManager.create()
+
+    // Offline region selection (Android: MapLibre offline packs)
+    private val _offlineSelectionPhase = MutableStateFlow(OfflineSelectionPhase.Idle)
+    val offlineSelectionPhase: StateFlow<OfflineSelectionPhase> = _offlineSelectionPhase
+
+    private val _offlinePreviewBounds = MutableStateFlow<GeoBounds?>(null)
+    val offlinePreviewBounds: StateFlow<GeoBounds?> = _offlinePreviewBounds
+
+    private val _offlineDownloadState = MutableStateFlow(OfflineDownloadUiState())
+    val offlineDownloadState: StateFlow<OfflineDownloadUiState> = _offlineDownloadState
+
+    /** Set by [OfflineRegionMapContent] when user confirms download. */
+    private val _offlineDownloadRequest = MutableStateFlow<GeoBounds?>(null)
+    val offlineDownloadRequest: StateFlow<GeoBounds?> = _offlineDownloadRequest
+
+    fun startOfflineRegionSelection() {
+        _offlinePreviewBounds.value = null
+        _offlineDownloadState.value = OfflineDownloadUiState()
+        _offlineDownloadRequest.value = null
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Drawing
+        navigationState.closeMainMenu()
+        Logger.log("OFFLINE", LogLevel.INFO, "Started offline region selection")
+    }
+
+    fun cancelOfflineRegionSelection() {
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Idle
+        _offlinePreviewBounds.value = null
+        _offlineDownloadRequest.value = null
+        _offlineDownloadState.value = OfflineDownloadUiState()
+        Logger.log("OFFLINE", LogLevel.INFO, "Cancelled offline region selection")
+    }
+
+    fun setOfflinePreviewBounds(bounds: GeoBounds) {
+        _offlinePreviewBounds.value = bounds
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Preview
+    }
+
+    fun redrawOfflineRegion() {
+        _offlinePreviewBounds.value = null
+        _offlineDownloadRequest.value = null
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Drawing
+    }
+
+    fun confirmOfflineRegionDownload() {
+        val bounds = _offlinePreviewBounds.value ?: return
+        _offlineDownloadRequest.value = bounds
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Downloading
+        _offlineDownloadState.value = OfflineDownloadUiState(statusMessage = "Preparing download…")
+        Logger.log("OFFLINE", LogLevel.INFO, "Confirmed offline download for bounds $bounds")
+    }
+
+    fun updateOfflineDownloadState(state: OfflineDownloadUiState) {
+        _offlineDownloadState.value = state
+    }
+
+    fun completeOfflineRegionDownload() {
+        _offlineSelectionPhase.value = OfflineSelectionPhase.Idle
+        _offlinePreviewBounds.value = null
+        _offlineDownloadRequest.value = null
+        _offlineDownloadState.value = OfflineDownloadUiState(
+            statusMessage = "Region saved for offline use",
+            isComplete = true,
+        )
+        Logger.log("OFFLINE", LogLevel.INFO, "Offline region download complete")
+    }
 
 
     

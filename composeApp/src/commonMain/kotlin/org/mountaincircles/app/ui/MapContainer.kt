@@ -35,8 +35,10 @@ import kotlin.math.PI
 import org.mountaincircles.app.logger.LogLevel
 import org.mountaincircles.app.logger.Logger
 import org.mountaincircles.app.state.GlobalState
+import org.mountaincircles.app.ui.map.BasemapStyle
 import org.mountaincircles.app.ui.map.LayerManagerComposables
-import org.mountaincircles.app.ui.map.MapterhornHillshadeLayer
+import org.mountaincircles.app.offline.OfflineRegionMapContent
+import org.mountaincircles.app.ui.glyphsBaseUri
 import org.mountaincircles.app.modules.wave.logic.data.RasterData
 import org.mountaincircles.app.modules.wave.logic.data.WaveSelection
 import org.mountaincircles.app.ui.AppIcons
@@ -49,44 +51,6 @@ import kotlinx.datetime.*
 import org.mountaincircles.app.modules.livetracking.logic.data.LiveTrackingVisibilityMode
 import org.mountaincircles.app.modules.skysight.logic.data.SkysightLayerData
 import org.mountaincircles.app.modules.skysight.logic.controllers.SkysightTilingControllerV2
-
-// OpenStreetMap style - MapLibre handles tile fetching natively
-private val osmMapStyle = """
-{
-    "version": 8,
-    "name": "OpenStreetMap",
-    "metadata": {
-        "mapbox:autocomposite": false,
-        "mapbox:type": "template"
-    },
-    "sources": {
-        "osm": {
-            "type": "raster",
-            "tiles": [
-                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            ],
-            "tileSize": 256,
-            "minzoom": 0,
-            "maxzoom": 18,
-            "attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
-        }
-    },
-    "sprite": "",
-    "glyphs": "$glyphsBaseUri{fontstack}/{range}.pbf",
-    "layers": [
-        {
-            "id": "osm-layer",
-            "type": "raster",
-            "source": "osm",
-            "minzoom": 0,
-            "maxzoom": 18,
-            "paint": {
-                "raster-opacity": 1.0
-            }
-        }
-    ]
-}
-"""
 
 /**
  * Helper function to update Skysight viewport data for current selection
@@ -354,10 +318,12 @@ fun MapContainer(
     // MapLibre Map with OSM tiles - MapLibre handles tile fetching natively
     Logger.log("MAP", LogLevel.INFO, "Using OpenStreetMap tiles - MapLibre handles fetching natively")
 
+    val basemapStyleJson = remember { BasemapStyle.buildJson(glyphsBaseUri) }
+
     MaplibreMap(
         modifier = Modifier.fillMaxSize(),
         cameraState = cameraState,
-        baseStyle = BaseStyle.Json(osmMapStyle), // OpenStreetMap tiles handled natively
+        baseStyle = BaseStyle.Json(basemapStyleJson),
         options = MapOptions(
             ornamentOptions = OrnamentOptions(
                 isLogoEnabled = false, // Remove MapLibre logo
@@ -401,8 +367,8 @@ fun MapContainer(
             Logger.log("MAP", LogLevel.INFO, "globalState.onMapReady() completed")
         }
 
-        // Global Mapterhorn hillshade over the OSM basemap (MountainCircles---map Cloudflare branch)
-        MapterhornHillshadeLayer()
+        // Offline region preview + MapLibre offline pack download (Android)
+        OfflineRegionMapContent(globalState)
 
         // Add all module layers using the new LayerManager system
         // This provides hybrid support: new system if layers registered, fallback to old system
