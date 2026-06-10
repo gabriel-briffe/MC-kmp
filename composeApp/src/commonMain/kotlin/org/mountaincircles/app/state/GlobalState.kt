@@ -53,6 +53,11 @@ class GlobalState {
     private val _vectorWidthDp = MutableStateFlow(3f)
     val vectorWidthDp: StateFlow<Float> = _vectorWidthDp
 
+    private val _osmBasemapEnabled = MutableStateFlow(true)
+    val osmBasemapEnabled: StateFlow<Boolean> = _osmBasemapEnabled
+
+    private val _terrainBasemapEnabled = MutableStateFlow(true)
+    val terrainBasemapEnabled: StateFlow<Boolean> = _terrainBasemapEnabled
 
     // Click position tracking (for modules that want to show markers on clicks)
     private val _clickedPosition = MutableStateFlow<MapClickEvent?>(null)
@@ -103,6 +108,10 @@ class GlobalState {
     val offlineDownloadRequest: StateFlow<GeoBounds?> = _offlineDownloadRequest
 
     fun startOfflineRegionSelection() {
+        if (!_osmBasemapEnabled.value && !_terrainBasemapEnabled.value) {
+            Logger.log("OFFLINE", LogLevel.WARN, "Cannot store offline: enable OSM and/or Terrain in Basemap")
+            return
+        }
         _offlinePreviewBounds.value = null
         _offlineDownloadState.value = OfflineDownloadUiState()
         _offlineDownloadRequest.value = null
@@ -132,6 +141,13 @@ class GlobalState {
 
     fun confirmOfflineRegionDownload() {
         val bounds = _offlinePreviewBounds.value ?: return
+        if (!_osmBasemapEnabled.value && !_terrainBasemapEnabled.value) {
+            _offlineDownloadState.value = OfflineDownloadUiState(
+                error = "Enable OSM and/or Terrain in the Basemap sidebar section.",
+                statusMessage = "Download failed",
+            )
+            return
+        }
         _offlineDownloadRequest.value = bounds
         _offlineSelectionPhase.value = OfflineSelectionPhase.Downloading
         _offlineDownloadState.value = OfflineDownloadUiState(statusMessage = "Preparing download…")
@@ -170,6 +186,8 @@ class GlobalState {
         _vectorLengthKm.value = settings.vectorLengthKm
         _circleWidthDp.value = settings.circleWidthDp
         _vectorWidthDp.value = settings.vectorWidthDp
+        _osmBasemapEnabled.value = settings.osmBasemapEnabled
+        _terrainBasemapEnabled.value = settings.terrainBasemapEnabled
 
         // Initialize module manager
         moduleManager.initialize(this)
@@ -273,6 +291,32 @@ class GlobalState {
             appSettingsManager.save(currentSettings.copy(vectorWidthDp = clampedValue))
         } catch (e: Exception) {
             Logger.log("GEOLOCATION", LogLevel.ERROR, "Failed to save vector width: ${e.message}", e)
+        }
+    }
+
+    suspend fun setOsmBasemapEnabled(enabled: Boolean) {
+        if (!enabled && !_terrainBasemapEnabled.value) return
+        _osmBasemapEnabled.value = enabled
+        persistBasemapSettings()
+    }
+
+    suspend fun setTerrainBasemapEnabled(enabled: Boolean) {
+        if (!enabled && !_osmBasemapEnabled.value) return
+        _terrainBasemapEnabled.value = enabled
+        persistBasemapSettings()
+    }
+
+    private suspend fun persistBasemapSettings() {
+        try {
+            val currentSettings = appSettingsManager.load()
+            appSettingsManager.save(
+                currentSettings.copy(
+                    osmBasemapEnabled = _osmBasemapEnabled.value,
+                    terrainBasemapEnabled = _terrainBasemapEnabled.value,
+                ),
+            )
+        } catch (e: Exception) {
+            Logger.log("BASEMAP", LogLevel.ERROR, "Failed to save basemap settings: ${e.message}", e)
         }
     }
 

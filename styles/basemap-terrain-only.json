@@ -1,0 +1,38 @@
+{
+  "version": 8,
+  "name": "Mountain Circles Terrain",
+  "sources": {
+    "mapterhorn-dem": {
+      "type": "raster-dem",
+      "tiles": [
+        "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
+      ],
+      "tileSize": 512,
+      "minzoom": 0,
+      "maxzoom": 14,
+      "encoding": "terrarium",
+      "attribution": "Terrain © Mapterhorn (https://mapterhorn.com/attribution)"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#d8d8d8"
+      }
+    },
+    {
+      "id": "mapterhorn-hillshade",
+      "type": "hillshade",
+      "source": "mapterhorn-dem",
+      "maxzoom": 14,
+      "paint": {
+        "hillshade-exaggeration": 0.4,
+        "hillshade-shadow-color": "#473B24",
+        "hillshade-highlight-color": "#ffffff",
+        "hillshade-illumination-direction": 310
+      }
+    }
+  ]
+}

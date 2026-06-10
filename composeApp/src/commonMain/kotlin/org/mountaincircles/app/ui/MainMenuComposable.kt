@@ -21,6 +21,7 @@ import org.mountaincircles.app.ui.components.BottomSheetConfigs
 import org.mountaincircles.app.ui.theme.AppTheme
 import org.mountaincircles.app.ui.AboutComposable
 import org.mountaincircles.app.offline.isOfflineRegionDownloadSupported
+import org.mountaincircles.app.ui.map.BasemapStyle
 
 @Composable
 fun MainMenuComposable(
@@ -72,15 +73,26 @@ fun MainMenuComposable(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (isOfflineRegionDownloadSupported) {
+                    val osmEnabled by globalState.osmBasemapEnabled.collectAsState()
+                    val terrainEnabled by globalState.terrainBasemapEnabled.collectAsState()
+                    val offlineBasemapReady = osmEnabled || terrainEnabled
+                    val offlineLayersLabel = BasemapStyle.offlineLayersLabel(osmEnabled, terrainEnabled)
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .clickable {
+                            .clickable(enabled = offlineBasemapReady) {
                                 Logger.log("UI", LogLevel.INFO, "MainMenu: Store offline clicked")
                                 globalState.startOfflineRegionSelection()
                             },
-                        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.3f))
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (offlineBasemapReady) {
+                                Color.Gray.copy(alpha = 0.3f)
+                            } else {
+                                Color.Gray.copy(alpha = 0.1f)
+                            },
+                        ),
                     ) {
                         Row(
                             modifier = Modifier
@@ -92,7 +104,7 @@ fun MainMenuComposable(
                             Icon(
                                 painter = AppIcons.Download(),
                                 contentDescription = "Store offline",
-                                tint = Color.White,
+                                tint = if (offlineBasemapReady) Color.White else Color.Gray,
                                 modifier = Modifier.size(24.dp)
                             )
                             Column {
@@ -100,10 +112,14 @@ fun MainMenuComposable(
                                     text = "Store offline",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.White
+                                    color = if (offlineBasemapReady) Color.White else Color.Gray
                                 )
                                 Text(
-                                    text = "Download map area for offline use (zoom 0–7)",
+                                    text = if (offlineBasemapReady) {
+                                        "Download $offlineLayersLabel for offline use (zoom 0–7)"
+                                    } else {
+                                        "Enable OSM and/or Terrain in the Basemap sidebar"
+                                    },
                                     fontSize = 12.sp,
                                     color = Color.Gray
                                 )

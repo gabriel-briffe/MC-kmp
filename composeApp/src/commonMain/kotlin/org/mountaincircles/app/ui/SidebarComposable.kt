@@ -78,9 +78,9 @@ fun SidebarComposable(
                 // Expand the target module
                 moduleExpansionStates[targetModuleId]?.value = true
 
-                // Scroll to the target section (+1 for geolocation widget)
-                scrollToModule(targetIndex + 1)
-                Logger.log("UI", LogLevel.INFO, "SidebarComposable: Expanded and scrolled to target module '$targetModuleId' at index ${targetIndex + 1}")
+                // Scroll to the target section (+2 for basemap and geolocation widgets)
+                scrollToModule(targetIndex + 2)
+                Logger.log("UI", LogLevel.INFO, "SidebarComposable: Expanded and scrolled to target module '$targetModuleId' at index ${targetIndex + 2}")
 
                 // Clear the target after processing
                 navigationState.clearSidebarTarget()
@@ -131,7 +131,14 @@ fun SidebarComposable(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Top
                 ) {
-                    // Geolocation widget at the top (index 0)
+                    // Basemap widget (index 0)
+                    item {
+                        Box(modifier = Modifier.padding(bottom = 16.dp)) {
+                            BasemapWidget(globalState = globalState)
+                        }
+                    }
+
+                    // Geolocation widget (index 1)
                     item {
                         Box(modifier = Modifier.padding(bottom = 16.dp)) {
                             GeolocationWidget(
@@ -174,6 +181,82 @@ fun SidebarComposable(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun BasemapWidget(
+    globalState: GlobalState,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+    val osmEnabled by globalState.osmBasemapEnabled.collectAsState()
+    val terrainEnabled by globalState.terrainBasemapEnabled.collectAsState()
+
+    CollapsibleSidebarWidget(
+        title = "Basemap",
+        modifier = modifier,
+        initiallyExpanded = false,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            BasemapToggleRow(
+                label = "OSM",
+                checked = osmEnabled,
+                enabled = !osmEnabled || terrainEnabled,
+                onCheckedChange = { enabled ->
+                    scope.launch { globalState.setOsmBasemapEnabled(enabled) }
+                },
+            )
+            BasemapToggleRow(
+                label = "Terrain",
+                checked = terrainEnabled,
+                enabled = !terrainEnabled || osmEnabled,
+                onCheckedChange = { enabled ->
+                    scope.launch { globalState.setTerrainBasemapEnabled(enabled) }
+                },
+            )
+            Text(
+                text = "Offline downloads include only enabled layers.",
+                fontSize = 12.sp,
+                color = Color.Gray,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BasemapToggleRow(
+    label: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            color = SubmenuTheme.Colors.textPrimary,
+            fontSize = 14.sp,
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = SubmenuTheme.Colors.primary,
+                checkedTrackColor = SubmenuTheme.Colors.primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.Gray.copy(alpha = 0.3f),
+            ),
+        )
     }
 }
 
